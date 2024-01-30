@@ -20,7 +20,7 @@ model Users {
   updatedAt DateTime  @updatedAt @map("updatedAt")
   resumes   Resumes[]
 
-  @@map("User")
+  @@map("Users")
 }
 
 model Resumes {
@@ -32,7 +32,7 @@ model Resumes {
   createdAt DateTime @default(now()) @map("createdAt")
   updatedAt DateTime @updatedAt @map("updatedAt")
 
-  user Users @relation(fields: [userId], references: [userId], onDelete: Cascade)
+  users Users @relation(fields: [userId], references: [userId], onDelete: Cascade)
 
   @@map("Resumes")
 }
