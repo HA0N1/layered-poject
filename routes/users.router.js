@@ -2,7 +2,6 @@ import express from "express";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
-import authMiddleware from "../middleware/auth.middleware.js";
 import { prisma } from "../models/index.js";
 
 const router = express.Router();
