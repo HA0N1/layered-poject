@@ -13,26 +13,51 @@ const router = express.Router();
 //     - ASC는 과거순, DESC는 최신순 그리고 둘 다 해당하지 않거나 값이 없는 경우에는 최신순 정렬을 합니다.
 //     - 예시 데이터 : orderKey=userId&orderValue=desc
 
+//쿼리 스트링으로 데이터 넘겨 받는 방법 고안해야함.
+
 router.get("/resumes", authmiddleware, async (req, res, next) => {
   const { userId } = req.local.user;
-  const resume = await prisma.resumes.findMany({
+  const resumes = await prisma.resumes.findMany({
     where: { userId: userId },
-    // include: { users: true },
     select: {
       resumeId: true,
       title: true,
       content: true,
-
       status: true,
       createdAt: true,
+      users: {
+        select: {
+          name: true,
+        },
+      },
     },
+    orderBy: { createdAt: "desc" },
   });
-  return res.status(200).json({ data: resume });
+  return res.status(200).json({ data: resumes });
 });
 
 //  이력서 상세 조회 API
 // - 이력서 ID, 이력서 제목, 자기소개, 작성자명, 이력서 상태, 작성 날짜 조회하기 (단건)
 //     - 작성자명을 표시하기 위해서는 상품 테이블과 사용자 테이블의 JOIN이 필요합니다.
+router.get("/resumes/:resumeId", authmiddleware, async (req, res, next) => {
+  const { resumeId } = req.params;
+  const resume = await prisma.resumes.findFirst({
+    where: { resumeId: +resumeId },
+    select: {
+      resumeId: true,
+      title: true,
+      content: true,
+      status: true,
+      createdAt: true,
+      users: {
+        select: {
+          name: true,
+        },
+      },
+    },
+  });
+  return res.status(200).json({ data: resume });
+});
 
 //  이력서 생성 API (✅ 인증 필요 - middleware 활용)
 // - API 호출 시 이력서 제목, 자기소개 데이터를 전달 받습니다.
