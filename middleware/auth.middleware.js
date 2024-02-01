@@ -1,6 +1,7 @@
 import jwt from "jsonwebtoken";
 import { prisma } from "../models/index.js";
-
+// - 인증 필요 API 호출 시 **Request Header**의 ****Authorization 값으로 **JWT**를 함께 넘겨줘야 합니다.
+// - 인증에 실패한 경우, 알맞은 **Http Status Code**와 **로그인이 필요합니다** 라는 에러 메세지를 반환합니다.
 export default async function (req, res, next) {
   try {
     // 1. 클라이언트로 부터 쿠키(Cookie)를 전달받습니다.
