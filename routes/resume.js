@@ -3,6 +3,11 @@ import express from "express";
 import { prisma } from "../models/index.js";
 
 const router = express.Router();
+// 200 OK: 요청이 성공적으로 처리되었고, 요청에 대한 응답이 클라이언트에게 전송되었습니다.
+// 400 Bad Request: 서버가 클라이언트의 요청을 이해할 수 없거나 유효하지 않은 요청이라고 판단했습니다.
+// 401 Unauthorized: 클라이언트가 인증되지 않았거나 인증 정보가 유효하지 않아 요청을 처리할 수 없다는 것을 나타냅니다.
+// 403 Forbidden: 클라이언트가 요청한 리소스에 접근할 권한이 없다는 것을 나타냅니다.
+// 404 Not Found: 서버가 클라이언트의 요청에 해당하는 리소스를 찾을 수 없다는 것을 나타냅니다.
 
 //  모든 이력서 목록 조회 API
 // - 이력서 ID, 이력서 제목, 자기소개, 작성자명, 이력서 상태, 작성 날짜 조회하기 (여러건)
@@ -14,7 +19,8 @@ const router = express.Router();
 //     - 예시 데이터 : orderKey=userId&orderValue=desc
 
 //쿼리 스트링으로 데이터 넘겨 받는 방법 고안해야함.
-
+// url를 직접 쳐서?
+//
 router.get("/resumes", authmiddleware, async (req, res, next) => {
   const { userId } = req.local.user;
   const resumes = await prisma.resumes.findMany({
@@ -31,7 +37,6 @@ router.get("/resumes", authmiddleware, async (req, res, next) => {
         },
       },
     },
-    orderBy: { createdAt: "desc" },
   });
   return res.status(200).json({ data: resumes });
 });
@@ -78,10 +83,44 @@ router.post("/resumes", authmiddleware, async (req, res, next) => {
 // - 이력서 제목, 자기소개, 이력서 상태 데이터로 넘겨 이력서 수정을 요청합니다.
 // - 수정할 이력서 정보는 본인이 작성한 이력서에 대해서만 수정되어야 합니다.
 // - 선택한 이력서가 존재하지 않을 경우, 이력서 조회에 실패하였습니다. 메시지를 반환합니다.
+router.patch("/resumes/:resumeId", authmiddleware, async (req, res, next) => {
+  const { resumeId } = req.params;
+  const { userId } = req.local.user;
+  const { title, content, status } = req.body;
+
+  const resume = await prisma.resumes.findFirst({ where: { resumeId: +resumeId } });
+
+  if (!resume) return res.status(401).json({ message: "이력서를 찾을 수 없습니다." });
+
+  if (userId !== resume.userId) return res.status(401).json({ message: "작성자가 아닙니다." });
+  await prisma.resumes.updateMany({
+    data: {
+      title,
+      content,
+      status,
+    },
+    where: {
+      resumeId: +resumeId,
+    },
+  });
+  return res.status(201).json({ message: "이력서를 수정하였습니다." });
+});
 
 //  이력서 삭제 API (✅ 인증 필요 - middleware 활용)
 // - 이력서 ID를 데이터로 넘겨 이력서를 삭제 요청합니다.
 // - 본인이 생성한 이력서 데이터만 삭제되어야 합니다.
 // - 선택한 이력서가 존재하지 않을 경우, 이력서 조회에 실패하였습니다. 메시지를 반환합니다.
+router.delete("/resumes/:resumeId", authmiddleware, async (req, res, next) => {
+  const { userId } = req.local.user;
+  const resumeId = req.params.resumeId;
+
+  const resume = await prisma.resumes.findFirst({ where: { resumeId: +resumeId } });
+
+  if (!resume) return res.status(401).json({ message: "이력서를 찾을 수 없습니다." });
+
+  if (userId !== resume.userId) return res.status(401).json({ message: "작성자가 아닙니다." });
+
+  return res.status(201).json({ message: "이력서가 삭제 되었습니다." });
+});
 
 export default router;
