@@ -19,10 +19,27 @@ const router = express.Router();
 //     - 예시 데이터 : orderKey=userId&orderValue=desc
 
 //쿼리 스트링으로 데이터 넘겨 받는 방법 고안해야함.
-// url를 직접 쳐서?
-//
+
 router.get("/resumes", authmiddleware, async (req, res, next) => {
   const { userId } = req.local.user;
+  const orderkey = req.query.orderkey;
+  const orderValue = req.query.orderValue;
+  let orderBy = {};
+  if (orderValue && orderValue.toLowerCase() === "asc") {
+    orderBy = {
+      [orderKey]: "asc",
+    };
+  } else if (orderValue && orderValue.toLowerCase() === "desc") {
+    orderBy = {
+      [orderKey]: "desc",
+    };
+  } else {
+    // orderValue가 없거나 유효하지 않은 값인 경우, 기본적으로 최신순으로 정렬
+    orderBy = {
+      createdAt: "desc",
+    };
+  }
+
   const resumes = await prisma.resumes.findMany({
     where: { userId: userId },
     select: {
@@ -37,10 +54,11 @@ router.get("/resumes", authmiddleware, async (req, res, next) => {
         },
       },
     },
+    orderBy, // orderBy 객체를 이용하여 정렬 수행
   });
+
   return res.status(200).json({ data: resumes });
 });
-
 //  이력서 상세 조회 API
 // - 이력서 ID, 이력서 제목, 자기소개, 작성자명, 이력서 상태, 작성 날짜 조회하기 (단건)
 //     - 작성자명을 표시하기 위해서는 상품 테이블과 사용자 테이블의 JOIN이 필요합니다.
