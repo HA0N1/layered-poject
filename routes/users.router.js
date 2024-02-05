@@ -57,7 +57,10 @@ router.post("/sign-in", async (req, res, next) => {
   const { email, password } = req.body;
   // req한 데이터와 db의 데이터를 비교하기 위해 비교군 생성
   const user = await prisma.users.findFirst({ where: { email } });
+
   //bcrypt.compare 앞과 뒷값을 비교 후  T/F 불리언타입으로 반환. 불일치일때 오류 발생해야하니까 !사용
+
+  if (user.email !== email) return res.status(401).json({ message: "이메일이 일치하지 않습니다." });
   if (!(await bcrypt.compare(password, user.password)))
     return res.status(401).json({ message: "이메일 또는 비밀번호가 일치하지 않습니다." });
   // user가 가지고 잇는 id로 jwt 토큰 발급
