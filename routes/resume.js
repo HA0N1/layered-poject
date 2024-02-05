@@ -99,6 +99,7 @@ router.get("/resumes/:resumeId", authmiddleware, async (req, res, next) => {
       createdAt: true,
     },
   });
+  if (!resume) return res.status(404).json({ message: "존재하지 않는 이력서 입니다." });
   return res.status(200).json({ data: resume });
 });
 
@@ -106,6 +107,8 @@ router.get("/resumes/:resumeId", authmiddleware, async (req, res, next) => {
 // - API 호출 시 이력서 제목, 자기소개 데이터를 전달 받습니다.
 router.post("/resumes", authmiddleware, async (req, res, next) => {
   const { title, content } = req.body;
+  if (!title) return res.status(400).json({ message: "이력서 제목은 필수 값입니다." });
+  if (!content) return res.status(400).json({ message: "이력서 내용은 필수 값입니다." });
   const user = res.locals.user;
   const resume = await prisma.resumes.create({
     data: {
@@ -148,8 +151,8 @@ router.patch("/resumes/:resumeId", authmiddleware, async (req, res, next) => {
 //  이력서 삭제 API (✅ 인증 필요 - middleware 활용)
 // - 이력서 ID를 데이터로 넘겨 이력서를 삭제 요청합니다.
 // - 본인이 생성한 이력서 데이터만 삭제되어야 합니다.
-// - 선택한 이력서가 존재하지 않을 경우, 이력서 조회에 실패하였습니다. 메시지를 반환합니다.
 router.delete("/resumes/:resumeId", authmiddleware, async (req, res, next) => {
+  // - 선택한 이력서가 존재하지 않을 경우, 이력서 조회에 실패하였습니다. 메시지를 반환합니다.
   const { userId } = req.local.user;
   const resumeId = req.params.resumeId;
 

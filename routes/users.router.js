@@ -22,6 +22,10 @@ dotenv.config();
 // 3. 회원가입 성공 시, 비밀번호를 제외 한 사용자의 정보를 반환합니다.
 router.post("/sign-up", async (req, res, next) => {
   const { email, password, confirm, name } = req.body;
+  if (!email) return res.status(400).json({ message: "email은 필수 값 입니다." });
+  if (!password) return res.status(400).json({ message: "password는 필수 값 입니다." });
+  if (!confirm) return res.status(400).json({ message: "confirm은 필수 값 입니다." });
+  if (!name) return res.status(400).json({ message: "name은 필수 값 입니다." });
   // 이메일은 유니크로 속성을 주어 유니크로 검색
   const existUser = await prisma.users.findUnique({ where: { email } });
   if (existUser) return res.status(400).json({ message: "이미 존재하는 이메일 입니다." });
