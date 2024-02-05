@@ -127,15 +127,20 @@ router.post("/resumes", authmiddleware, async (req, res, next) => {
 // - 선택한 이력서가 존재하지 않을 경우, 이력서 조회에 실패하였습니다. 메시지를 반환합니다.
 router.patch("/resumes/:resumeId", authmiddleware, async (req, res, next) => {
   const { resumeId } = req.params;
-  const { userId } = req.local.user;
+  const { userId } = res.locals.user;
   const { title, content, status } = req.body;
 
   const resume = await prisma.resumes.findFirst({ where: { resumeId: +resumeId } });
 
   if (!resume) return res.status(401).json({ message: "이력서를 찾을 수 없습니다." });
-
-  if (userId !== resume.userId) return res.status(401).json({ message: "작성자가 아닙니다." });
-  await prisma.resumes.updateMany({
+  if (!resumeId) return res.status(401).json({ message: "resumeId는 필수 값 입니다." });
+  if (!title) return res.status(401).json({ message: "이력서 제목은 필수 값 입니다." });
+  if (!content) return res.status(401).json({ message: "이력서 내용은 필수 값 입니다." });
+  if (!status) return res.status(401).json({ message: "이력서 상태는 필수 값 입니다." });
+  if (userId !== resume.userId) return res.status(401).json({ message: "작성자가 일치하지 아닙니다." });
+  if (!["APPLY", "DROP", "PASS", "INTERVIEW1", "INTERVIEW2", "FINAL_PASS"].includes(status))
+    return res.status(401).json({ message: "올바른 상태 값이 아닙니다." });
+  await prisma.resumes.update({
     data: {
       title,
       content,
