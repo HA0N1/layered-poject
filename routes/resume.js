@@ -158,15 +158,18 @@ router.patch("/resumes/:resumeId", authmiddleware, async (req, res, next) => {
 // - 본인이 생성한 이력서 데이터만 삭제되어야 합니다.
 router.delete("/resumes/:resumeId", authmiddleware, async (req, res, next) => {
   // - 선택한 이력서가 존재하지 않을 경우, 이력서 조회에 실패하였습니다. 메시지를 반환합니다.
-  const { userId } = req.local.user;
+  const { userId } = res.locals.user;
   const resumeId = req.params.resumeId;
 
   const resume = await prisma.resumes.findFirst({ where: { resumeId: +resumeId } });
 
   if (!resume) return res.status(401).json({ message: "이력서를 찾을 수 없습니다." });
+  if (!resumeId) return res.status(401).json({ message: "resumeId는 필수 값 입니다." });
+  if (userId !== resume.userId) return res.status(401).json({ message: "작성자가 일치하지 아닙니다." });
 
-  if (userId !== resume.userId) return res.status(401).json({ message: "작성자가 아닙니다." });
-
+  await prisma.resumes.delete({
+    where: { resumeId: +resumeId },
+  });
   return res.status(201).json({ message: "이력서가 삭제 되었습니다." });
 });
 
