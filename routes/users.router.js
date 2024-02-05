@@ -21,30 +21,51 @@ dotenv.config();
 //     - 비밀번호: 최소 6자 이상이며, 비밀번호 확인과 일치해야 합니다.
 // 3. 회원가입 성공 시, 비밀번호를 제외 한 사용자의 정보를 반환합니다.
 router.post("/sign-up", async (req, res, next) => {
-  const { email, password, confirm, name } = req.body;
-  if (!email) return res.status(400).json({ message: "email은 필수 값 입니다." });
-  if (!password) return res.status(400).json({ message: "password는 필수 값 입니다." });
-  if (!confirm) return res.status(400).json({ message: "confirm은 필수 값 입니다." });
+  const { email, clientId, password, confirm, name } = req.body;
+  // 카카오 로그인이 아니라면 메일과 비밀번호로 가압해야하기 때문
+  if (!clientId) {
+    if (!email) return res.status(400).json({ message: "email은 필수 값 입니다." });
+    if (!password) return res.status(400).json({ message: "password는 필수 값 입니다." });
+    if (!confirm) return res.status(400).json({ message: "confirm은 필수 값 입니다." });
+  }
   if (!name) return res.status(400).json({ message: "name은 필수 값 입니다." });
-  // 이메일은 유니크로 속성을 주어 유니크로 검색
-  const existUser = await prisma.users.findUnique({ where: { email } });
-  if (existUser) return res.status(400).json({ message: "이미 존재하는 이메일 입니다." });
-  if (password !== confirm) return res.status(400).json({ message: "비밀번호와 비밀번호 확인이 일치하지 않습니다." });
-  if (password.length < 6 || confirm.length < 6)
-    return res.status(400).json({ message: "비밀번호는 6자리 이상이어야합니다." });
-  // bcrypt를 이용해 비밀번호 hash. confirm도 같아야하니 password로 주기! 10은 복잡도의 정도
-  const hashedPassword = await bcrypt.hash(password, 10);
-  const hashedConfirm = await bcrypt.hash(password, 10);
-  // 유저를 users 테이블에 추가해주기. 대신 비밀번호는 쉿! 비밀이야
-  const user = await prisma.users.create({
-    data: {
-      email,
-      password: hashedPassword,
-      confirm: hashedConfirm,
-      name,
-    },
-  });
-  return res.status(200).json({ data: { email, name } });
+  // clientId 검증 (카카오검증)
+  if (clientId) {
+    const user = await prisma.users.findFirst({
+      where: {
+        clientId,
+      },
+    });
+    if (user) return res.status(400).json({ message: "이미 가입된 사용자 입니다." });
+    // 유저를 users 테이블에 추가해주기. 대신 비밀번호는 쉿! 비밀이야
+    await prisma.users.create({
+      data: {
+        clientId,
+        name,
+      },
+    });
+  } else {
+    // 이메일검증
+    // 이메일은 유니크로 속성을 주어 유니크로 검색
+    // bcrypt를 이용해 비밀번호 hash. confirm도 같아야하니 password로 주기! 10은 복잡도의 정도
+
+    const existUser = await prisma.users.findFirst({ where: { email } });
+    if (existUser) return res.status(400).json({ message: "이미 존재하는 이메일 입니다." });
+    if (password !== confirm) return res.status(400).json({ message: "비밀번호와 비밀번호 확인이 일치하지 않습니다." });
+    if (password.length < 6 || confirm.length < 6)
+      return res.status(400).json({ message: "비밀번호는 6자리 이상이어야합니다." });
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const hashedConfirm = await bcrypt.hash(password, 10);
+    await prisma.users.create({
+      data: {
+        email,
+        password: hashedPassword,
+        confirm: hashedConfirm,
+        name,
+      },
+    });
+  }
+  return res.status(200).json({ name });
 });
 // 로그인 API
 // 1. 이메일, 비밀번호로 로그인을 요청합니다.
@@ -54,15 +75,25 @@ router.post("/sign-up", async (req, res, next) => {
 //         - Payload: userId를 담고 있습니다.
 //         - 유효기한: 12시간
 router.post("/sign-in", async (req, res, next) => {
-  const { email, password } = req.body;
-  // req한 데이터와 db의 데이터를 비교하기 위해 비교군 생성
-  const user = await prisma.users.findFirst({ where: { email } });
+  const { clientId, email, password } = req.body;
+  let user;
+  if (clientId) {
+    // 카카오 로그인
+    user = await prisma.users.findFirst({
+      where: {
+        clientId,
+      },
+    });
+    if (!user) return res.status(400).json({ message: "올바르지 않은 로그인 정보입니다." });
+  } else {
+    // req한 데이터와 db의 데이터를 비교하기 위해 비교군 생성
 
-  //bcrypt.compare 앞과 뒷값을 비교 후  T/F 불리언타입으로 반환. 불일치일때 오류 발생해야하니까 !사용
+    user = await prisma.users.findFirst({ where: { email } });
+    if (!user) return res.status(400).json({ message: "올바르지 않은 로그인 정보입니다." });
+    if (!(await bcrypt.compare(password, user.password)))
+      return res.status(401).json({ message: "이메일 또는 비밀번호가 일치하지 않습니다." });
+  }
 
-  if (user.email !== email) return res.status(401).json({ message: "이메일이 일치하지 않습니다." });
-  if (!(await bcrypt.compare(password, user.password)))
-    return res.status(401).json({ message: "이메일 또는 비밀번호가 일치하지 않습니다." });
   // user가 가지고 잇는 id로 jwt 토큰 발급
   const accessToken = jwt.sign({ userId: user.userId }, process.env.CUSTOM_SECRET_KEY, { expiresIn: "12h" });
   // authorization라는 키 값에 Bearer방식으로 jwt 토큰 할당
