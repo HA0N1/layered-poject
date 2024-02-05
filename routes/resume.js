@@ -1,4 +1,5 @@
 import authmiddleware from "../middleware/auth.middleware.js";
+import jwt from "jsonwebtoken";
 import express from "express";
 import { prisma } from "../models/index.js";
 
@@ -20,44 +21,61 @@ const router = express.Router();
 
 //쿼리 스트링으로 데이터 넘겨 받는 방법 고안해야함.
 
-router.get("/resumes", authmiddleware, async (req, res, next) => {
-  const { userId } = req.local.user;
-  const orderkey = req.query.orderkey;
-  const orderValue = req.query.orderValue;
-  let orderBy = {};
-  if (orderValue && orderValue.toLowerCase() === "asc") {
-    orderBy = {
-      [orderKey]: "asc",
-    };
-  } else if (orderValue && orderValue.toLowerCase() === "desc") {
-    orderBy = {
-      [orderKey]: "desc",
-    };
-  } else {
-    // orderValue가 없거나 유효하지 않은 값인 경우, 기본적으로 최신순으로 정렬
-    orderBy = {
-      createdAt: "desc",
-    };
-  }
+router.get("/resumes", async (req, res, next) => {
+  // const { userId } = req.local.user;
+  // const orderkey = req.query.orderkey;
+  // const orderValue = req.query.orderValue;
 
-  const resumes = await prisma.resumes.findMany({
-    where: { userId: userId },
+  // 그로스 nullish 병합 연산자
+  /** a가 null도 아니고 undefined도 아니라면 a ==== a ?? b === (a != null && a != undefiend) ? a : b * */
+  const orderKey = req.query.orderKey ?? "resumeId"; // req.query.orderkey가 값이 없다면 resumeId을 orderKey에 넣기
+  const orderValue = req.query.orderValue ?? "desc"; // req.query.orderValue가 값이 없다면 desc
+  // if (orderValue && orderValue.toLowerCase() === "asc") {
+  //   orderBy = {
+  //     [orderKey]: "asc",
+  //   };
+  // } else if (orderValue && orderValue.toLowerCase() === "desc") {
+  //   orderBy = {
+  //     [orderKey]: "desc",
+  //   };
+  // } else {
+  //   // orderValue가 없거나 유효하지 않은 값인 경우, 기본적으로 최신순으로 정렬
+  //   orderBy = {
+  //     createdAt: "desc",
+  //   };
+  // }
+  if (!["resumeId", "status"].includes(orderKey)) {
+    return res.status(400).json({ message: "orderKey가 올바르지 않습니다." });
+  }
+  if (!["asc", "desc"].includes(orderValue.toLowerCase())) {
+    return res.status(400).json({ message: "orderValue가 올바르지 않습니다." });
+  }
+  const resume = await prisma.resumes.findMany({
+    // where: { userId: userId },
     select: {
       resumeId: true,
       title: true,
       content: true,
       status: true,
-      createdAt: true,
       users: {
         select: {
           name: true,
         },
       },
+      createdAt: true,
     },
-    orderBy, // orderBy 객체를 이용하여 정렬 수행
+    // orderBy, // orderBy 객체를 이용하여 정렬 수행
+    orderBy: [
+      {
+        [orderKey]: orderValue.toLowerCase(),
+      },
+    ],
   });
-
-  return res.status(200).json({ data: resumes });
+  // resume.forEach((resume) => {
+  //   resume.name = resume.user.name;
+  //   delete resume.user;
+  // });
+  return res.status(200).json({ data: resume });
 });
 //  이력서 상세 조회 API
 // - 이력서 ID, 이력서 제목, 자기소개, 작성자명, 이력서 상태, 작성 날짜 조회하기 (단건)
@@ -79,6 +97,14 @@ router.get("/resumes/:resumeId", authmiddleware, async (req, res, next) => {
       },
     },
   });
+  /** 유저네임을 동일 선상에 두고 싶을 때.* */
+  resume.forEach((resume) => {
+    resume.name = resume.user.name;
+    delete resume.user;
+  });
+  console.log("🚀 ~ resume.forEach ~ resume.user.name:", resume.user.name);
+  console.log("🚀 ~ resume.forEach ~ resume.name:", resume.name);
+  console.log("🚀 ~ resume.forEach ~ resume.user:", resume.user);
   return res.status(200).json({ data: resume });
 });
 
@@ -86,7 +112,7 @@ router.get("/resumes/:resumeId", authmiddleware, async (req, res, next) => {
 // - API 호출 시 이력서 제목, 자기소개 데이터를 전달 받습니다.
 router.post("/resumes", authmiddleware, async (req, res, next) => {
   const { title, content } = req.body;
-  const { userId } = req.local.user;
+  const { userId } = req.local.user.userId;
   const resume = await prisma.resumes.create({
     data: {
       userId: +userId,

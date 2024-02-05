@@ -2,6 +2,7 @@ import express from "express";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
+import { Prisma } from "@prisma/client";
 import { prisma } from "../models/index.js";
 
 const router = express.Router();
@@ -58,8 +59,8 @@ router.post("/sign-in", async (req, res, next) => {
   // user가 가지고 잇는 id로 jwt 토큰 발급
   const accessToken = jwt.sign({ userId: user.userId }, process.env.CUSTOM_SECRET_KEY, { expiresIn: "12h" });
   // authorization라는 키 값에 Bearer방식으로 jwt 토큰 할당
-  res.cookie("authorization", `Bearer ${accessToken}`);
-  return res.status(200).json({ accessToken: accessToken });
+  // res.cookie("authorization", `Bearer ${accessToken}`);
+  return res.status(200).json({ accessToken });
 });
 
 export default router;
