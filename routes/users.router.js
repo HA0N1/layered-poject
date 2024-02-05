@@ -21,8 +21,11 @@ dotenv.config();
 //     - 비밀번호: 최소 6자 이상이며, 비밀번호 확인과 일치해야 합니다.
 // 3. 회원가입 성공 시, 비밀번호를 제외 한 사용자의 정보를 반환합니다.
 router.post("/sign-up", async (req, res, next) => {
-  const { email, clientId, password, confirm, name } = req.body;
+  const { email, clientId, password, confirm, name, grade } = req.body;
+  // const grade = req.body.grade ?? "NORMAL";
   // 카카오 로그인이 아니라면 메일과 비밀번호로 가압해야하기 때문
+  if (grade && !["user", "admin"].includes(grade))
+    return res.status(400).json({ message: " 등급이 올바르지 않습니다." });
   if (!clientId) {
     if (!email) return res.status(400).json({ message: "email은 필수 값 입니다." });
     if (!password) return res.status(400).json({ message: "password는 필수 값 입니다." });
@@ -42,6 +45,7 @@ router.post("/sign-up", async (req, res, next) => {
       data: {
         clientId,
         name,
+        grade,
       },
     });
   } else {
@@ -62,6 +66,7 @@ router.post("/sign-up", async (req, res, next) => {
         password: hashedPassword,
         confirm: hashedConfirm,
         name,
+        grade,
       },
     });
   }

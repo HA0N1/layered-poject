@@ -13,7 +13,7 @@ model Users {
   name      String    @map("name")
   email     String?   @map("email")
   password  String?   @map("password")
-  confirm   String?   @map("confirm")
+  grade     String    @default("user") @db.VarChar(255)
   createdAt DateTime  @default(now()) @map("createdAt")
   updatedAt DateTime  @updatedAt @map("updatedAt")
   resumes   Resumes[]
