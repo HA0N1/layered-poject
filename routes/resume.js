@@ -50,7 +50,7 @@ router.get("/resumes", async (req, res, next) => {
   if (!["asc", "desc"].includes(orderValue.toLowerCase())) {
     return res.status(400).json({ message: "orderValue가 올바르지 않습니다." });
   }
-  const resume = await prisma.resumes.findMany({
+  const resumes = await prisma.resumes.findMany({
     // where: { userId: userId },
     select: {
       resumeId: true,
@@ -71,17 +71,18 @@ router.get("/resumes", async (req, res, next) => {
       },
     ],
   });
-  // resume.forEach((resume) => {
-  //   resume.name = resume.user.name;
-  //   delete resume.user;
+  /** 유저네임을 동일 선상에 두고 싶을 때.* */
+  // resumes.forEach((resume) => {
+  //   resume.name = resume.users.name;
+  //   delete resume.users;
   // });
-  return res.status(200).json({ data: resume });
+  return res.status(200).json({ data: resumes });
 });
 //  이력서 상세 조회 API
 // - 이력서 ID, 이력서 제목, 자기소개, 작성자명, 이력서 상태, 작성 날짜 조회하기 (단건)
 //     - 작성자명을 표시하기 위해서는 상품 테이블과 사용자 테이블의 JOIN이 필요합니다.
 router.get("/resumes/:resumeId", authmiddleware, async (req, res, next) => {
-  const { resumeId } = req.params;
+  const resumeId = req.params.resumeId;
   const resume = await prisma.resumes.findFirst({
     where: { resumeId: +resumeId },
     select: {
@@ -95,16 +96,9 @@ router.get("/resumes/:resumeId", authmiddleware, async (req, res, next) => {
           name: true,
         },
       },
+      createdAt: true,
     },
   });
-  /** 유저네임을 동일 선상에 두고 싶을 때.* */
-  resume.forEach((resume) => {
-    resume.name = resume.user.name;
-    delete resume.user;
-  });
-  console.log("🚀 ~ resume.forEach ~ resume.user.name:", resume.user.name);
-  console.log("🚀 ~ resume.forEach ~ resume.name:", resume.name);
-  console.log("🚀 ~ resume.forEach ~ resume.user:", resume.user);
   return res.status(200).json({ data: resume });
 });
 
@@ -112,12 +106,13 @@ router.get("/resumes/:resumeId", authmiddleware, async (req, res, next) => {
 // - API 호출 시 이력서 제목, 자기소개 데이터를 전달 받습니다.
 router.post("/resumes", authmiddleware, async (req, res, next) => {
   const { title, content } = req.body;
-  const { userId } = req.local.user.userId;
+  const user = res.locals.user;
   const resume = await prisma.resumes.create({
     data: {
-      userId: +userId,
       title,
       content,
+      status: "APPLY",
+      userId: user.userId,
     },
   });
   return res.status(201).json({ message: "이력서를 생성하였습니다." });
