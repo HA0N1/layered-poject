@@ -17,7 +17,7 @@ export default async function (req, res, next) {
     if (tokenType !== "Bearer") throw new Error("토큰 타입이 일치하지 않습니다.");
 
     // 3. 서버에서 발급한 JWT가 맞는지 검증합니다.
-    const token = jwt.verify(tokenValue, process.env.CUSTOM_SECRET_KEY);
+    const token = jwt.verify(tokenValue, process.env.ACCESS_TOKEN_SECRET_KEY);
     // 4. JWT의 `userId`를 이용해 사용자를 조회합니다.
     // const userId = token.userId;
     // const user = await prisma.users.findFirst({ where: { userId: +userId } }); // 그로스 : 23번 코드를 날리고 where: { userId: token.userId} 가능

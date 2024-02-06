@@ -17,7 +17,8 @@ app.use(express.json());
 app.use(cookieParser());
 // app.use(bodyParser());
 // 각각의 라우터 연결 해주기.
-app.use("/api", [UsersRouter, AuthRouter, ResumeRouter]);
+app.use("/api", [UsersRouter, ResumeRouter]);
+app.use("/auth", AuthRouter);
 
 app.listen(PORT, () => {
   console.log(PORT, "포트로 서버가 열렸어요!");

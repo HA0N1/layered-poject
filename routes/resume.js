@@ -136,8 +136,8 @@ router.patch("/resumes/:resumeId", authmiddleware, async (req, res, next) => {
   if (!title) return res.status(401).json({ message: "이력서 제목은 필수 값 입니다." });
   if (!content) return res.status(401).json({ message: "이력서 내용은 필수 값 입니다." });
   if (!status) return res.status(401).json({ message: "이력서 상태는 필수 값 입니다." });
+  // admin이 아니거나 내 아이디가 일치 않지 않으면 이쪽으로
   if (user.grade === "user" && user.userId !== resume.userId)
-    // admin이 아니거나 내 아이디가 일치 않지 않으면 이쪽으로
     return res.status(401).json({ message: "올바르지 않은 요청입니다." });
   if (!["APPLY", "DROP", "PASS", "INTERVIEW1", "INTERVIEW2", "FINAL_PASS"].includes(status))
     return res.status(401).json({ message: "올바른 상태 값이 아닙니다." });

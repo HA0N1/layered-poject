@@ -4,6 +4,7 @@ import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
 import { Prisma } from "@prisma/client";
 import { prisma } from "../models/index.js";
+import authmiddleware from "../middleware/auth.middleware.js";
 
 const router = express.Router();
 dotenv.config();
@@ -40,7 +41,6 @@ router.post("/sign-up", async (req, res, next) => {
       },
     });
     if (user) return res.status(400).json({ message: "이미 가입된 사용자 입니다." });
-    // 유저를 users 테이블에 추가해주기. 대신 비밀번호는 쉿! 비밀이야
     await prisma.users.create({
       data: {
         clientId,
@@ -100,10 +100,33 @@ router.post("/sign-in", async (req, res, next) => {
   }
 
   // user가 가지고 잇는 id로 jwt 토큰 발급
-  const accessToken = jwt.sign({ userId: user.userId }, process.env.CUSTOM_SECRET_KEY, { expiresIn: "12h" });
+  const accessToken = jwt.sign({ userId: user.userId }, process.env.ACCESS_TOKEN_SECRET_KEY, { expiresIn: "12h" });
+  const refreshToken = jwt.sign({ userId: user.userId }, process.env.REFRESH_TOKEN_SECRET_KEY, { expiresIn: "7d" });
+
   // authorization라는 키 값에 Bearer방식으로 jwt 토큰 할당
   // res.cookie("authorization", `Bearer ${accessToken}`);
-  return res.status(200).json({ accessToken });
+  return res.status(200).json({ accessToken, refreshToken });
+});
+// 내 정보 조회 API (인증 필요 - 인증 Middleware 사용)
+// 1. 인증에 성공했다면, **비밀번호를 제외한 내 정보**를 반환합니다.
+
+// router.get("/user", authMiddleware, async (req, res, next) => {
+//   const user = await prisma.users.findMany({
+//     select: {
+//       userId: true,
+//       email: true,
+//       name: true,
+//     },
+//     orderBy: {
+//       createdAt: "desc",
+//     },
+//   });
+//   return res.status(200).json({ data: user });
+// });
+// 그로스 : authMiddleware에서 local에 유저를 가져왔으니 findMany는 필요없음, RESTful하게 하기위해 주소를  me로 변경
+router.get("/me", authmiddleware, async (req, res, next) => {
+  const user = res.locals.user;
+  return res.json({ email: user.email, name: user.name });
 });
 
 export default router;
