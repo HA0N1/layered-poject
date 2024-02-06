@@ -7,7 +7,7 @@
   - ACCESS_TOKEN_SECRET_KEY
 
 # API 명세서 URL
-- [링크](https://www.notion.so/5bd7315d296241c091cb82dd9deb078e?v=c4fb94c10a624c2384e5750929b452ee&pvs=4)
+- [링크](https://separate-tuesday-6d2.notion.site/API-3126572bd80545e3a2f473965d2b62ba?pvs=4)
 
 # ERD URL
 - [링크](https://www.erdcloud.com/d/BNp6aRuDaJJL8Mhi2)
