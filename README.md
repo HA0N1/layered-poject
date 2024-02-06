@@ -5,6 +5,7 @@
   - DATABASE_URL
   - CUSTOM_SECRET_KEY
   - ACCESS_TOKEN_SECRET_KEY
+  - REFRESH_TOKEN_SECRET_KEY
 
 # API 명세서 URL
 - [링크](https://separate-tuesday-6d2.notion.site/API-3126572bd80545e3a2f473965d2b62ba?pvs=4)
