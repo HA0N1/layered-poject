@@ -5,9 +5,10 @@
   - DATABASE_URL
   - CUSTOM_SECRET_KEY
   - ACCESS_TOKEN_SECRET_KEY
+  - REFRESH_TOKEN_SECRET_KEY
 
 # API 명세서 URL
-- [링크](https://www.notion.so/5bd7315d296241c091cb82dd9deb078e?v=74af6f5a61e2470ba973433bce1a1714&pvs=4)
+- [링크](https://separate-tuesday-6d2.notion.site/API-3126572bd80545e3a2f473965d2b62ba?pvs=4)
 
 # ERD URL
 - [링크](https://www.erdcloud.com/d/BNp6aRuDaJJL8Mhi2)
