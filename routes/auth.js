@@ -1,4 +1,3 @@
-import authMiddleware from "../middleware/auth.middleware.js";
 import { Prisma } from "@prisma/client";
 import { prisma } from "../models/index.js";
 import express from "express";

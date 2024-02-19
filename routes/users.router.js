@@ -31,6 +31,10 @@ router.post("/sign-up", async (req, res, next) => {
     if (!email) return res.status(400).json({ message: "email은 필수 값 입니다." });
     if (!password) return res.status(400).json({ message: "password는 필수 값 입니다." });
     if (!confirm) return res.status(400).json({ message: "confirm은 필수 값 입니다." });
+
+    if (password !== confirm) return res.status(400).json({ message: "비밀번호와 비밀번호 확인이 일치하지 않습니다." });
+    if (password.length < 6 || confirm.length < 6)
+      return res.status(400).json({ message: "비밀번호는 6자리 이상이어야합니다." });
   }
   if (!name) return res.status(400).json({ message: "name은 필수 값 입니다." });
   // clientId 검증 (카카오검증)
@@ -55,16 +59,12 @@ router.post("/sign-up", async (req, res, next) => {
 
     const existUser = await prisma.users.findFirst({ where: { email } });
     if (existUser) return res.status(400).json({ message: "이미 존재하는 이메일 입니다." });
-    if (password !== confirm) return res.status(400).json({ message: "비밀번호와 비밀번호 확인이 일치하지 않습니다." });
-    if (password.length < 6 || confirm.length < 6)
-      return res.status(400).json({ message: "비밀번호는 6자리 이상이어야합니다." });
     const hashedPassword = await bcrypt.hash(password, 10);
     const hashedConfirm = await bcrypt.hash(password, 10);
     await prisma.users.create({
       data: {
         email,
         password: hashedPassword,
-        confirm: hashedConfirm,
         name,
         grade,
       },
@@ -92,11 +92,12 @@ router.post("/sign-in", async (req, res, next) => {
     if (!user) return res.status(400).json({ message: "올바르지 않은 로그인 정보입니다." });
   } else {
     // req한 데이터와 db의 데이터를 비교하기 위해 비교군 생성
-
-    user = await prisma.users.findFirst({ where: { email } });
-    if (!user) return res.status(400).json({ message: "올바르지 않은 로그인 정보입니다." });
+    if (!email) return res.status(400).json({ message: "email은 필수 값 입니다." });
+    if (!password) return res.status(400).json({ message: "password는 필수 값 입니다." });
     if (!(await bcrypt.compare(password, user.password)))
       return res.status(401).json({ message: "이메일 또는 비밀번호가 일치하지 않습니다." });
+    user = await prisma.users.findFirst({ where: { email, password: hashedPassword } });
+    if (!user) return res.status(400).json({ message: "올바르지 않은 로그인 정보입니다." });
   }
 
   // user가 가지고 잇는 id로 jwt 토큰 발급

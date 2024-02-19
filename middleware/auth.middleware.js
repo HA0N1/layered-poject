@@ -9,7 +9,9 @@ import { prisma } from "../models/index.js";
 export default async function (req, res, next) {
   try {
     // 헤드에서 액세스 토큰 가져오기
+    console.log("🚀 ~ req.headers:", req.headers);
     const accessToken = req.headers.authorization;
+    console.log("🚀 ~ accessToken:", accessToken);
     if (!accessToken) throw new Error("요청한 토큰이 존재하지 않습니다.");
     // bearer 토큰 형식인지 확인.
     // tokenType은 토큰타입인 Bearer

@@ -4,11 +4,6 @@ import express from "express";
 import { prisma } from "../models/index.js";
 
 const router = express.Router();
-// 200 OK: 요청이 성공적으로 처리되었고, 요청에 대한 응답이 클라이언트에게 전송되었습니다.
-// 400 Bad Request: 서버가 클라이언트의 요청을 이해할 수 없거나 유효하지 않은 요청이라고 판단했습니다.
-// 401 Unauthorized: 클라이언트가 인증되지 않았거나 인증 정보가 유효하지 않아 요청을 처리할 수 없다는 것을 나타냅니다.
-// 403 Forbidden: 클라이언트가 요청한 리소스에 접근할 권한이 없다는 것을 나타냅니다.
-// 404 Not Found: 서버가 클라이언트의 요청에 해당하는 리소스를 찾을 수 없다는 것을 나타냅니다.
 
 //  모든 이력서 목록 조회 API
 // - 이력서 ID, 이력서 제목, 자기소개, 작성자명, 이력서 상태, 작성 날짜 조회하기 (여러건)
@@ -18,8 +13,6 @@ const router = express.Router();
 //     - orderValue에 들어올 수 있는 값은 ASC, DESC 두가지 값으로 대소문자 구분을 하지 않습니다.
 //     - ASC는 과거순, DESC는 최신순 그리고 둘 다 해당하지 않거나 값이 없는 경우에는 최신순 정렬을 합니다.
 //     - 예시 데이터 : orderKey=userId&orderValue=desc
-
-//쿼리 스트링으로 데이터 넘겨 받는 방법 고안해야함.
 
 router.get("/resumes", async (req, res, next) => {
   // const { userId } = req.local.user;
@@ -51,7 +44,6 @@ router.get("/resumes", async (req, res, next) => {
     return res.status(400).json({ message: "orderValue가 올바르지 않습니다." });
   }
   const resumes = await prisma.resumes.findMany({
-    // where: { userId: userId },
     select: {
       resumeId: true,
       title: true,
@@ -83,6 +75,9 @@ router.get("/resumes", async (req, res, next) => {
 //     - 작성자명을 표시하기 위해서는 상품 테이블과 사용자 테이블의 JOIN이 필요합니다.
 router.get("/resumes/:resumeId", authmiddleware, async (req, res, next) => {
   const resumeId = req.params.resumeId;
+  if (!resumeId) {
+    return res.status(400).json({ message: "resumeId는 필수값입니다" });
+  }
   const resume = await prisma.resumes.findFirst({
     where: { resumeId: +resumeId },
     select: {
@@ -106,11 +101,11 @@ router.get("/resumes/:resumeId", authmiddleware, async (req, res, next) => {
 //  이력서 생성 API (✅ 인증 필요 - middleware 활용)
 // - API 호출 시 이력서 제목, 자기소개 데이터를 전달 받습니다.
 router.post("/resumes", authmiddleware, async (req, res, next) => {
+  const user = res.locals.user;
   const { title, content } = req.body;
   if (!title) return res.status(400).json({ message: "이력서 제목은 필수 값입니다." });
   if (!content) return res.status(400).json({ message: "이력서 내용은 필수 값입니다." });
-  const user = res.locals.user;
-  const resume = await prisma.resumes.create({
+  await prisma.resumes.create({
     data: {
       title,
       content,
@@ -129,18 +124,18 @@ router.patch("/resumes/:resumeId", authmiddleware, async (req, res, next) => {
   const { resumeId } = req.params;
   const user = res.locals.user;
   const { title, content, status } = req.body;
-  const resume = await prisma.resumes.findFirst({ where: { resumeId: +resumeId } });
-
-  if (!resume) return res.status(401).json({ message: "이력서를 찾을 수 없습니다." });
   if (!resumeId) return res.status(401).json({ message: "resumeId는 필수 값 입니다." });
   if (!title) return res.status(401).json({ message: "이력서 제목은 필수 값 입니다." });
   if (!content) return res.status(401).json({ message: "이력서 내용은 필수 값 입니다." });
   if (!status) return res.status(401).json({ message: "이력서 상태는 필수 값 입니다." });
+  if (!["APPLY", "DROP", "PASS", "INTERVIEW1", "INTERVIEW2", "FINAL_PASS"].includes(status))
+    return res.status(401).json({ message: "올바른 상태 값이 아닙니다." });
+  const resume = await prisma.resumes.findFirst({ where: { resumeId: +resumeId } });
+
+  if (!resume) return res.status(401).json({ message: "이력서를 찾을 수 없습니다." });
   // admin이 아니거나 내 아이디가 일치 않지 않으면 이쪽으로
   if (user.grade === "user" && user.userId !== resume.userId)
     return res.status(401).json({ message: "올바르지 않은 요청입니다." });
-  if (!["APPLY", "DROP", "PASS", "INTERVIEW1", "INTERVIEW2", "FINAL_PASS"].includes(status))
-    return res.status(401).json({ message: "올바른 상태 값이 아닙니다." });
   // 내가 작성하거나 admin이면 이쪽으로
   await prisma.resumes.update({
     data: {
@@ -160,14 +155,14 @@ router.patch("/resumes/:resumeId", authmiddleware, async (req, res, next) => {
 // - 본인이 생성한 이력서 데이터만 삭제되어야 합니다.
 router.delete("/resumes/:resumeId", authmiddleware, async (req, res, next) => {
   // - 선택한 이력서가 존재하지 않을 경우, 이력서 조회에 실패하였습니다. 메시지를 반환합니다.
-  const { userId } = res.locals.user;
+  const user = res.locals.user;
   const resumeId = req.params.resumeId;
 
+  if (!resumeId) return res.status(401).json({ message: "resumeId는 필수 값 입니다." });
   const resume = await prisma.resumes.findFirst({ where: { resumeId: +resumeId } });
 
   if (!resume) return res.status(401).json({ message: "이력서를 찾을 수 없습니다." });
-  if (!resumeId) return res.status(401).json({ message: "resumeId는 필수 값 입니다." });
-  if (userId !== resume.userId) return res.status(401).json({ message: "작성자가 일치하지 아닙니다." });
+  if (user.userId !== resume.userId) return res.status(401).json({ message: "올바르지 않은 요청입니다." });
 
   await prisma.resumes.delete({
     where: { resumeId: +resumeId },
