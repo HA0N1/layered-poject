@@ -1,10 +1,10 @@
-import express from "express";
-import dotenv from "dotenv";
-import cookieParser from "cookie-parser";
+import express from 'express';
+import dotenv from 'dotenv';
+import cookieParser from 'cookie-parser';
 // import bodyParser from "body-parser";
-import UsersRouter from "./routes/users.router.js";
-import AuthRouter from "./routes/auth.js";
-import ResumeRouter from "./routes/resume.js";
+import UsersRouter from '../routes/users.router.js';
+import AuthRouter from '../routes/auth.js';
+import ResumeRouter from '../routes/resume.js';
 
 dotenv.config();
 const app = express();
@@ -17,9 +17,9 @@ app.use(express.json());
 app.use(cookieParser());
 // app.use(bodyParser());
 // 각각의 라우터 연결 해주기.
-app.use("/api", [UsersRouter, ResumeRouter]);
-app.use("/auth", AuthRouter);
+app.use('/api', [UsersRouter, ResumeRouter]);
+app.use('/auth', AuthRouter);
 
 app.listen(PORT, () => {
-  console.log(PORT, "포트로 서버가 열렸어요!");
+  console.log(PORT, '포트로 서버가 열렸어요!');
 });
