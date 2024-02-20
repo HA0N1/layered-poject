@@ -23,10 +23,10 @@ export class UsersService {
     const refreshToken = jwt.sign({ userId: loggedInUser.userId }, process.env.REFRESH_TOKEN_SECRET_KEY, {
       expiresIn: '7d',
     });
+
     return {
       clientId: loggedInUser.clientId,
       email: loggedInUser.email,
-      password: loggedInUser.password,
       accessToken: accessToken,
       refreshToken: refreshToken,
     };

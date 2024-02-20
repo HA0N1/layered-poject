@@ -21,8 +21,10 @@ export class UsersController {
   };
   getUserById = async (req, res, next) => {
     try {
-      const { userId } = req.params;
+      const { userId } = res.locals.user;
+      console.log('🚀 ~ UsersController ~ getUserById= ~ userId:', userId);
       const user = await this.usersService.findUserById(userId);
+      if (userId !== user.userId) throw new Error('네가 아니야 돌아가');
       return res.status(201).json({ data: user });
     } catch (err) {
       next(err);

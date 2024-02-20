@@ -14,7 +14,10 @@ export class UsersRepository {
     return createdUser;
   };
   loginUser = async (clientId, email, password) => {
-    const loggedInUser = await prisma.users.findFirst({ where: { email }, select: { email: true } });
+    const loggedInUser = await prisma.users.findFirst({
+      where: { email },
+      select: { email: true, userId: true, clientId: true },
+    });
     return loggedInUser;
   };
   findUserById = async (userId) => {
@@ -23,6 +26,7 @@ export class UsersRepository {
         userId: +userId,
       },
     });
+    // console.log('🚀 ~ UsersRepository ~ findUserById= ~ user:', user);
     return user;
   };
 }

@@ -22,8 +22,7 @@ export class ResumesController {
   };
   createResume = async (req, res, next) => {
     try {
-      const userId = res.locals.user.userId;
-      console.log('🚀 ~ ResumesController ~ createResume= ~ userId:', userId);
+      const { userId } = res.locals.user;
       const { title, content, status } = req.body;
       const createdResume = await this.resumesService.createResume(title, content, status, userId);
       return res.status(201).json({ data: createdResume });
@@ -33,9 +32,10 @@ export class ResumesController {
   };
   updateResume = async (req, res, next) => {
     try {
+      const { userId } = res.locals.user;
       const { resumeId } = req.params;
       const { title, content, status } = req.body;
-      const updatedResume = await this.resumesService.updateResume(resumeId, title, content, status);
+      const updatedResume = await this.resumesService.updateResume(resumeId, title, content, status, userId);
       return res.status(201).json({ data: updatedResume });
     } catch (err) {
       return next(err);
@@ -43,9 +43,9 @@ export class ResumesController {
   };
   deleteResume = async (req, res, next) => {
     try {
+      const { userId } = res.locals.user;
       const { resumeId } = req.params;
-
-      const deletedResume = await this.resumesService.deleteResume(resumeId);
+      const deletedResume = await this.resumesService.deleteResume(resumeId, userId);
       return res.status(201).json({ data: deletedResume });
     } catch (err) {
       return next(err);

@@ -11,8 +11,8 @@ router.get('/:resumeId', resumesController.getResumeById);
 //  이력서 생성 API
 router.post('/', AuthMiddleware, resumesController.createResume);
 //  이력서 수정 API
-router.patch('/:resumeId', resumesController.updateResume);
+router.patch('/:resumeId', AuthMiddleware, resumesController.updateResume);
 //  이력서 삭제 API
-router.delete('/:resumeId', resumesController.deleteResume);
+router.delete('/:resumeId', AuthMiddleware, resumesController.deleteResume);
 
 export default router;
