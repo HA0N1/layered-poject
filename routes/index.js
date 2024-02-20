@@ -5,7 +5,7 @@ import AuthRouter from './auth.router.js';
 
 const router = express.Router();
 router.use('/', UsersRouter);
-// router.use('/resumes/', ResumeRouter);
+router.use('/resumes/', ResumeRouter);
 // router.use('/auth', AuthRouter);
 
 export default router;
