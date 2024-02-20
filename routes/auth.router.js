@@ -1,11 +1,11 @@
-// import { Prisma } from '@prisma/client';
-// import { prisma } from '../models/index.js';
-// import express from 'express';
-// import jwt from 'jsonwebtoken';
-// const router = express.Router();
+import express from 'express';
+import { AuthController } from '../src/controllers/auth.controller.js';
 
+const router = express.Router();
+const authController = new AuthController();
+
+router.post('/token', authController.autoLogin);
 // router.post('/token', async (req, res) => {
-//   const { refreshToken } = req.body;
 
 //   const token = jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET_KEY);
 //   if (!token.userId) return res.status(401).end();
@@ -22,4 +22,4 @@
 //   });
 // });
 
-// export default router;
+export default router;

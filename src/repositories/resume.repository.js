@@ -39,10 +39,9 @@ export class ResumesRepository {
         },
       },
     });
-    console.log('🚀 ~ ResumesRepository ~ updateResume= ~ updatedResume:', updatedResume);
     return updatedResume;
   };
-  deleteResume = async (resumeId, userId) => {
+  deleteResume = async (resumeId) => {
     const deletedResume = await prisma.resumes.delete({
       where: { resumeId: +resumeId },
     });

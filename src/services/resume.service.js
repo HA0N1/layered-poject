@@ -27,22 +27,24 @@ export class ResumesService {
     };
   };
   updateResume = async (resumeId, title, content, status, userId) => {
-    const resume = await this.resumesRepository.findResumeById(resumeId);
-    console.log('🚀 ~ ResumesService ~ updateResume= ~ resume:', resume);
+    const resume = await this.resumesRepository.findResumeById(resumeId, userId);
+    if (resume.userId !== userId) throw new Error('돌아가 너 아니야');
     if (!resume) throw new Error('존재하지 않는 이력서 입니다.');
     await this.resumesRepository.updateResume(resumeId, title, content, status, userId);
-    // if(resume)
     const updatedResume = await this.resumesRepository.findResumeById(resumeId);
     return {
       resumeId: updatedResume.resumeId,
       title: updatedResume.title,
       content: updatedResume.content,
+      userId: updatedResume.userId,
       status: updatedResume.status,
       createdAt: updatedResume.createdAt,
     };
   };
   deleteResume = async (resumeId, userId) => {
-    const resume = await this.resumesRepository.findResumeById(resumeId);
+    const resume = await this.resumesRepository.findResumeById(resumeId, userId);
+    console.log('🚀 ~ ResumesService ~ deleteResume ~ resume:', resume);
+    if (resume.userId !== userId) throw new Error('돌아가 너 아니야');
     await this.resumesRepository.deleteResume(resumeId, userId);
     return {
       resumeId: resume.resumeId,
