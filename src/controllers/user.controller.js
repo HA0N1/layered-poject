@@ -1,6 +1,7 @@
-import { UsersService } from '../services/user.service.js';
 export class UsersController {
-  usersService = new UsersService();
+  constructor(usersService) {
+    this.usersService = usersService;
+  }
   createUser = async (req, res, next) => {
     try {
       const { email, clientId, password, name, grade } = req.body;

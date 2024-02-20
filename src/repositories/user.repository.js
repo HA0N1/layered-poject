@@ -1,8 +1,10 @@
-import { prisma } from '../../models/index.js';
-
 export class UsersRepository {
+  constructor(prisma) {
+    this.prisma = prisma;
+  }
+
   createUser = async (email, clientId, password, name, grade) => {
-    const createdUser = await prisma.users.create({
+    const createdUser = await this.prisma.users.create({
       data: {
         email,
         clientId,
@@ -14,19 +16,18 @@ export class UsersRepository {
     return createdUser;
   };
   loginUser = async (clientId, email, password) => {
-    const loggedInUser = await prisma.users.findFirst({
+    const loggedInUser = await this.prisma.users.findFirst({
       where: { email },
       select: { email: true, userId: true, clientId: true },
     });
     return loggedInUser;
   };
   findUserById = async (userId) => {
-    const user = await prisma.users.findUnique({
+    const user = await this.prisma.users.findUnique({
       where: {
         userId: +userId,
       },
     });
-    // console.log('🚀 ~ UsersRepository ~ findUserById= ~ user:', user);
     return user;
   };
 }

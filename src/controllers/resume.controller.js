@@ -1,7 +1,7 @@
-import { ResumesService } from '../services/resume.service.js';
-
 export class ResumesController {
-  resumesService = new ResumesService();
+  constructor(resumesService) {
+    this.resumesService = resumesService;
+  }
   getResumes = async (req, res, next) => {
     try {
       const resumes = await this.resumesService.findAllResumes();

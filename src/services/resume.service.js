@@ -1,6 +1,7 @@
-import { ResumesRepository } from '../repositories/resume.repository.js';
 export class ResumesService {
-  resumesRepository = new ResumesRepository();
+  constructor(resumesRepository) {
+    this.resumesRepository = resumesRepository;
+  }
   findAllResumes = async () => {
     const resumes = await this.resumesRepository.findAllResumes();
     return resumes.map((resume) => {

@@ -1,9 +1,10 @@
-import { UsersRepository } from '../repositories/user.repository.js';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 
 export class UsersService {
-  usersRepository = new UsersRepository();
+  constructor(usersRepository) {
+    this.usersRepository = usersRepository;
+  }
 
   createUser = async (email, clientId, password, name, grade) => {
     const hashedPassword = await bcrypt.hash(password, 10);

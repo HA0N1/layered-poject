@@ -1,9 +1,14 @@
 import express from 'express';
-import { ResumesController } from '../src/controllers/resume.controller.js';
 import AuthMiddleware from '../middleware/auth.middleware.js';
+import { ResumesController } from '../src/controllers/resume.controller.js';
+import { ResumesService } from '../src/services/resume.service.js';
+import { ResumesRepository } from '../src/repositories/resume.repository.js';
+import { prisma } from '../models/index.js';
 
 const router = express.Router();
-const resumesController = new ResumesController();
+const resumesRepository = new ResumesRepository(prisma);
+const resumesService = new ResumesService(resumesRepository);
+const resumesController = new ResumesController(resumesService);
 // 이력서 조회  API
 router.get('/', resumesController.getResumes);
 //  이력서 상세 조회 API
