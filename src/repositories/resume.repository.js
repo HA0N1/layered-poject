@@ -18,11 +18,6 @@ export class ResumesRepository {
         title,
         content,
         status,
-        users: {
-          connect: {
-            userId: userId,
-          },
-        },
       },
     });
     return createdResume;

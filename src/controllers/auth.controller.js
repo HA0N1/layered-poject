@@ -1,6 +1,7 @@
-import { AuthService } from '../services/auth.service.js';
 export class AuthController {
-  authService = new AuthService();
+  constructor(authService) {
+    this.authService = authService;
+  }
   autoLogin = async (req, res, next) => {
     try {
       const { refreshToken } = req.body;

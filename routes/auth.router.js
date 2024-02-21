@@ -1,25 +1,11 @@
 import express from 'express';
+import { AuthService } from '../src/services/auth.service.js';
+import { AuthRepository } from '../src/repositories/auth.repository.js';
 import { AuthController } from '../src/controllers/auth.controller.js';
-
+import { prisma } from '../models/index.js';
 const router = express.Router();
-const authController = new AuthController();
-
+const authRepository = new AuthRepository(prisma);
+const authService = new AuthService(authRepository);
+const authController = new AuthController(authService);
 router.post('/token', authController.autoLogin);
-// router.post('/token', async (req, res) => {
-
-//   const token = jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET_KEY);
-//   if (!token.userId) return res.status(401).end();
-//   const user = await prisma.users.findFirst({ where: { userId: token.userId } });
-//   if (!user) return res.status(401).end();
-
-//   // 리프레시 토큰 유효 => 액새크토큰, 리프레스토큰 재발급
-//   const newAccessToken = jwt.sign({ userId: user.userId }, process.env.ACCESS_TOKEN_SECRET_KEY, { expiresIn: '12h' });
-//   const newRefreshToken = jwt.sign({ userId: user.userId }, process.env.REFRESH_TOKEN_SECRET_KEY, { expiresIn: '7d' });
-
-//   return res.json({
-//     accessToken: newAccessToken,
-//     refreshToken: newRefreshToken,
-//   });
-// });
-
 export default router;

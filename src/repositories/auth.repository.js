@@ -1,7 +1,9 @@
-import { prisma } from '../../models/index.js';
 export class AuthRepository {
+  constructor(prisma) {
+    this.prisma = prisma;
+  }
   refreshToken = async (refreshToken, token) => {
-    const user = await prisma.users.findFirst({ where: { userId: token.userId } });
+    const user = await this.prisma.users.findFirst({ where: { userId: token.userId } });
     return user;
   };
 }
