@@ -12,7 +12,7 @@ model Resumes {
   title     String   @db.VarChar(255)
   content   String   @db.VarChar(255)
   userId    Int      @db.UnsignedInt
-  status    String   @db.VarChar(255)
+  status    Status   @default(APPLY)
   createdAt DateTime @default(now()) @db.DateTime(0)
   users     Users    @relation(fields: [userId], references: [userId], onUpdate: Restrict, map: "FK_resume_userId_user_userId")
 
@@ -28,4 +28,13 @@ model Users {
   name      String    @db.VarChar(255)
   createdAt DateTime  @default(now()) @db.DateTime(0)
   resumes   Resumes[]
+}
+
+enum Status {
+  APPLY
+  DROP
+  PASS
+  INTERVIEW1
+  INTERVIEW2
+  FINAL_PASS
 }
