@@ -18,6 +18,7 @@ export class ResumesRepository {
         title,
         content,
         status,
+        userId: +userId,
       },
     });
     return createdResume;
@@ -29,11 +30,7 @@ export class ResumesRepository {
         title,
         content,
         status,
-        users: {
-          connect: {
-            userId: userId,
-          },
-        },
+        userId: +userId,
       },
     });
     return updatedResume;

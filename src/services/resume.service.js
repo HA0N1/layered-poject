@@ -20,12 +20,7 @@ export class ResumesService {
   };
   createResume = async (title, content, status, userId) => {
     const createdResume = await this.resumesRepository.createResume(title, content, status, userId);
-    return {
-      title: createdResume.title,
-      content: createdResume.content,
-      status: createdResume.status,
-      userId: createdResume.userId,
-    };
+    return createdResume;
   };
   updateResume = async (resumeId, title, content, status, userId) => {
     const resume = await this.resumesRepository.findResumeById(resumeId, userId);
