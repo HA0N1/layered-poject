@@ -1,10 +1,10 @@
 import express from 'express';
-import { AuthService } from '../src/services/auth.service.js';
+import { AuthService }   from '../src/services/auth.service.js';
 import { AuthRepository } from '../src/repositories/auth.repository.js';
 import { AuthController } from '../src/controllers/auth.controller.js';
-import { prisma } from '../models/index.js';
+import dataSource from '../src/typrorm/index.js';
 const router = express.Router();
-const authRepository = new AuthRepository(prisma);
+const authRepository = new AuthRepository(dataSource);
 const authService = new AuthService(authRepository);
 const authController = new AuthController(authService);
 router.post('/token', authController.autoLogin);
