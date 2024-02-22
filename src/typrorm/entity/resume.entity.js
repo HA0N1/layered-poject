@@ -3,7 +3,7 @@ import typeorm from 'typeorm';
 const EntitySchema = typeorm.EntitySchema;
 
 export default new EntitySchema({
-  name: 'Resumes',
+  name: 'resumes',
   tableName: 'resumes',
   columns: {
     resumeId: {

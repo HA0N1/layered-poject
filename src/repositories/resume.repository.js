@@ -16,13 +16,12 @@ export class ResumesRepository {
     return resume;
   };
   createResume = async (title, content, status, userId) => {
-    const createdResume = await dataSource.getRepository('resumes').create({
+    const createdResume = await dataSource.getRepository('resumes').insert({
         title,
         content,
         status,
         userId: Number(userId),
     });
-    await dataSource.getRepository('resumes').save(createdResume)
     return createdResume;
   };
   updateResume = async (resumeId, title, content, status, userId) => {
