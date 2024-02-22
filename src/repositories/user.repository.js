@@ -2,14 +2,13 @@ import dataSource from '../typrorm/index.js';
 
 export class UsersRepository {
   createUser = async (email, clientId, password, name, grade) => {
-    const createdUser = await dataSource.getRepository('users').create({
+    const createdUser = await dataSource.getRepository('users').insert({
       email,
       clientId,
       password,
       name,
       grade
   });
-  await dataSource.getRepository('users').save(createdUser)
     return createdUser;
   };
   loginUser = async (clientId, email, password) => {
