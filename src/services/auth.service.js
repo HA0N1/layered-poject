@@ -1,13 +1,14 @@
 import jwt from 'jsonwebtoken';
 import {UsersRepository} from '../repositories/user.repository.js'
 export class AuthService {
+  usersRepository = new UsersRepository()
   constructor(authRepository) {
     this.authRepository = authRepository;
   }
-  verifyAccessToken = async (accsessToken) =>{
+  verifyAccessToken = async (tokenValue) =>{
     const token = jwt.verify(tokenValue, process.env.ACCESS_TOKEN_SECRET_KEY);
     if (!token.userId) throw new Error('인증 정보가 올바르지 않습니다.')
-    const user = await UsersRepository.findUserById(token.userId)
+    const user = await this.usersRepository.findUserById(token.userId)
     if (!user) throw new Error('토큰 사용자가 존재하지 않습니다.');
 
     return user

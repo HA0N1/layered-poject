@@ -1,5 +1,5 @@
 import {AuthService} from '../src/services/auth.service.js'
-export default function (req, res, next) {
+export default async function (req, res, next) {
   
 const authService = new AuthService
   try {
@@ -8,7 +8,8 @@ const authService = new AuthService
 
     const [tokenType, tokenValue] = req.headers.authorization.split(' ');
     if (tokenType !== 'Bearer') throw new Error('토큰 타입이 일치하지 않습니다.');
-    const user = authService.verifyAccessToken(tokenValue)
+    const user = await authService.verifyAccessToken(tokenValue)
+    console.log("🚀 ~ user:", user)
 
     res.locals.user = user;
     next();

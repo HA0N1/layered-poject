@@ -21,6 +21,7 @@ export class ResumesService {
   };
   createResume = async (title, content, status, userId) => {
     const createdResume = await this.resumesRepository.createResume(title, content, status, userId);
+    console.log("🚀 ~ ResumesService ~ createResume= ~ createdResume:", createdResume)
     return createdResume;
   };
   updateResume = async (resumeId, title, content, status, userId) => {
