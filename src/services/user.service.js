@@ -7,7 +7,7 @@ export class UsersService {
   }
 
   createUser = async (email, clientId, password, name, grade) => {
-    const user = await this.usersRepository.findUserByEmail(email)
+    const user = await this.usersRepository.findUserByEmail(email);
     if (user) throw new Error('이미 존재하는 이메일입니다.');
     const hashedPassword = await bcrypt.hash(password, 10);
     const createdUser = await this.usersRepository.createUser(email, clientId, hashedPassword, name, grade);
